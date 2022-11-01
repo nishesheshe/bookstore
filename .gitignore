@@ -1,0 +1,4 @@
+bookstore_venv/
+.idea/
+.*pyc
+.env
