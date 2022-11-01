@@ -2,3 +2,4 @@ bookstore_venv/
 .idea/
 .*pyc
 .env
+__pycache__/
