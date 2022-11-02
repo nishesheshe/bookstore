@@ -53,6 +53,13 @@ class BookStoreUser(AbstractBaseUser):
     is_staff = False
     objects = BookStoreUserManager()
 
+    @property
+    def is_buyer(self):
+        """
+        :return: returns True if bookstore user is not buyer
+        """
+        return not self.is_seller
+
     def __str__(self):
         return f'<{self.email} {self.username} {self.is_seller}>'
 
