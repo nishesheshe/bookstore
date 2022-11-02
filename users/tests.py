@@ -52,12 +52,5 @@ class BuyerBookStoreUserHasNotSellerAfterCreate(TestCase):
             is_seller=False
         )
 
-    def test_is_buyer_BookStoreUser_has_seller_profile(self):
-        assert not hasattr(self.test_user, 'seller')
-
-
-
-
-
-
-
+    def test_is_buyer_BookStoreUser_has_not_seller_profile(self):
+        self.assertFalse(hasattr(self.test_user, 'seller'))
