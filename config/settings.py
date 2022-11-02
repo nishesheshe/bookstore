@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'django.contrib.sites',
     # local
     'books.apps.BooksConfig',
     'users.apps.UsersConfig',
@@ -138,6 +139,7 @@ DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 AUTH_USER_MODEL = 'users.BookStoreUser'
 
+SITE_ID = 1
 
 REST_FRAMEWORK = {
     'DEFAULT_PERMISSION_CLASSES': [
@@ -145,7 +147,17 @@ REST_FRAMEWORK = {
     ],
     'DEFAULT_AUTHENTICATION_CLASSES': [
         'rest_framework.authentication.SessionAuthentication',
-        'rest_framework.authentication.TokenAuthentication', # new
+        'rest_framework.authentication.TokenAuthentication',
     ],
 
 }
+
+EMAIL_BACKEND = "django.core.mail.backends.console.EmailBackend"
+
+
+ACCOUNT_FORMS = {
+    'signup': 'YourProject.forms.CustomSignupForm',
+}
+
+ACCOUNT_AUTHENTICATION_METHOD = "email"
+ACCOUNT_EMAIL_REQUIRED=True

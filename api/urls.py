@@ -1,7 +1,10 @@
 from django.urls import path
 from .views import (
-    BookStoreUserRegisterView
+    BookStoreUserRegisterView,
+    BookStoreUserLoginView,
 )
+from dj_rest_auth.views import LoginView
 urlpatterns = [
-    path('', BookStoreUserRegisterView.as_view()),
+    path('signup', BookStoreUserRegisterView.as_view()),
+    path('login', LoginView.as_view()),
 ]

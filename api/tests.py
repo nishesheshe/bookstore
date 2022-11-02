@@ -6,18 +6,24 @@ from django.test import Client
 class RegistrationBuyerBookstoreUserTests(TestCase):
     @classmethod
     def setUpTestData(cls):
-        cls.json_data = {
+        cls.user_register_data = {
             "username": "test_username",
             "email": "test_email@test.com",
             "password1": "some_password",
             "password2": "some_password",
             "is_seller": False
         }
+        cls.user_login_data = {
+            "email": "test_email@test.com",
+            "password": "some_password",
+        }
 
-    def test_created_successfully(self):
+    def test_user_register_success(self):
         c = Client()
-        response = c.post('', data=self.json_data)
-        self.assertEqual(response.status_code, 201)
+        create_response = c.post('http://127.0.0.1:8000/bs_v1/signup', data=self.user_register_data)
+        self.assertEqual(create_response.status_code, 201)
+        # print(type(create_response.context))
+        # login_response = c.post('http://127.0.0.1:8000/bs_v1/signup', data=self.user_login_data)
 
     # def test_buyer_has_not_seller_attribute(self):
     #     request = requests.post('http://127.0.0.1:8000/', json=self.json_data)
