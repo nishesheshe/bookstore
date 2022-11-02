@@ -6,23 +6,29 @@ from django.db import models
 
 
 class BookStoreUserManager(BaseUserManager):
-    def create_user(self, email: str, username: str, password: str):
+    def create_user(self, email: str, username: str, password: str, is_seller):
         user = BookStoreUser(
             email=self.normalize_email(email),
             username=username,
+            is_seller=is_seller
         )
         user.set_password(password)
         user.save()
+        if is_seller:
+            Seller.objects.create(user=user)
         return user
 
-    def create_superuser(self, email: str, username: str, password: str):
+    def create_superuser(self, email: str, username: str, password: str, is_seller):
         user = BookStoreUser(
             email=self.normalize_email(email),
             username=username,
+            is_seller=is_seller,
         )
         user.is_staff = True
         user.set_password(password)
         user.save(using=self._db)
+        if is_seller:
+            Seller.objects.create(user=user)
         return user
 
 
@@ -39,17 +45,16 @@ class BookStoreUser(AbstractBaseUser):
         max_length=100,
         unique=True
     )
-    REQUIRED_FIELDS = ['username', ]
+    is_seller = models.BooleanField(
+        default=False
+    )
+    REQUIRED_FIELDS = ['username', 'is_seller']
     USERNAME_FIELD = 'email'
     is_staff = False
     objects = BookStoreUserManager()
 
-    @property
-    def is_seller(self):
-        """
-        This is a way of comparing buyer to seller users.
-        """
-        return hasattr(self, 'seller')
+    def __str__(self):
+        return f'<{self.email} {self.username} {self.is_seller}>'
 
 
 class Seller(models.Model):
@@ -57,6 +62,9 @@ class Seller(models.Model):
         BookStoreUser,
         on_delete=models.CASCADE,
     )
+
+    def __str__(self):
+        return f'<{self.user.username}>'
 
 
 class UserCartAbstract(models.Model):
