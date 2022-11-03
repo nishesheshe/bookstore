@@ -10,7 +10,8 @@ class BookStoreUserManager(BaseUserManager):
         user = BookStoreUser(
             email=self.normalize_email(email),
             username=username,
-            is_seller=is_seller
+            is_seller=is_seller,
+            is_staff=False
         )
         user.set_password(password)
         user.save()
@@ -18,11 +19,12 @@ class BookStoreUserManager(BaseUserManager):
             Seller.objects.create(user=user)
         return user
 
-    def create_superuser(self, email: str, username: str, password: str, is_seller):
+    def create_superuser(self, email: str, username: str, password: str, is_seller, is_stuff=True):
         user = BookStoreUser(
             email=self.normalize_email(email),
             username=username,
             is_seller=is_seller,
+            is_staff=is_stuff
         )
         user.is_staff = True
         user.set_password(password)
@@ -48,9 +50,11 @@ class BookStoreUser(AbstractBaseUser):
     is_seller = models.BooleanField(
         default=False
     )
+    is_staff = models.BooleanField(
+        default=False
+    )
     REQUIRED_FIELDS = ['username', 'is_seller']
     USERNAME_FIELD = 'email'
-    is_staff = False
     objects = BookStoreUserManager()
 
     @property
@@ -61,7 +65,11 @@ class BookStoreUser(AbstractBaseUser):
         return not self.is_seller
 
     def __str__(self):
-        return f'<{self.email} {self.username} {self.is_seller}>'
+        if self.is_seller:
+            role = 'seller'
+        elif self.is_buyer:
+            role = 'buyer'
+        return f'{self.email}|{self.username}|{role}'
 
 
 class Seller(models.Model):
@@ -86,7 +94,7 @@ class UserCartAbstract(models.Model):
     book = models.ForeignKey(
         'books.book',
         on_delete=models.CASCADE,
-        default=-1,
+        null=True,
     )
 
     class Meta:
@@ -97,7 +105,9 @@ class ShoppingCart(UserCartAbstract):
     """
     The class provides shopping cart logic.
     """
-    product_count = models.PositiveSmallIntegerField()
+    book_count = models.PositiveSmallIntegerField(  # RENAME to book_count
+        default=0
+    )
     BOOK_TYPE_CHOICES = [
         ('A', 'Audio'),
         ('S', 'Standard'),
@@ -106,6 +116,7 @@ class ShoppingCart(UserCartAbstract):
     type = models.CharField(
         max_length=1,
         choices=BOOK_TYPE_CHOICES,
+        null=True,
     )
 
 

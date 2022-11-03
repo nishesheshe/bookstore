@@ -6,9 +6,13 @@ from .permissions import IsCurrentUserOrReadOnly
 from .serializers import (
     BookStoreUserRegisterSerializer,
     BookStoreUserLoginSerializer,
-    BookStoreUserCurrentSerializer,
+    BookStoreUserSerializer,
 )
-from rest_framework import generics
+from rest_framework import generics, viewsets
+from rest_framework.permissions import (
+    IsAdminUser,
+    IsAuthenticated,
+)
 
 
 class BookStoreUserRegisterView(RegisterView):
@@ -16,13 +20,24 @@ class BookStoreUserRegisterView(RegisterView):
 
 
 class BookStoreUserCurrentView(generics.RetrieveUpdateAPIView):
-    serializer_class = BookStoreUserCurrentSerializer
-    permission_classes = (IsCurrentUserOrReadOnly, )
+    serializer_class = BookStoreUserSerializer
+    permission_classes = (IsCurrentUserOrReadOnly, IsAuthenticated)
 
     def get(self, request, *args, **kwargs):
-        serializer = BookStoreUserCurrentSerializer(request.user)
+        serializer = BookStoreUserSerializer(request.user)
         return Response(serializer.data)
 
     def get_object(self):
         return self.request.user
 
+
+class BookStoreUserViewSet(viewsets.ModelViewSet):
+    permission_classes = (IsAdminUser,)
+    serializer_class = BookStoreUserSerializer
+
+    class Meta:
+        model = BookStoreUser
+        fields = ('username', 'email', 'is_seller')
+
+    def get_queryset(self):
+        return BookStoreUser.objects.all()

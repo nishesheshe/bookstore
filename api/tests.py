@@ -1,6 +1,8 @@
 from django.test import TestCase
 from django.test import Client
 
+from users.models import BookStoreUser
+
 """
     Note: Seller user is just a BookStoreUser that has seller attribute.
 """
@@ -12,6 +14,7 @@ class RegistrationBuyerBookStoreUserTests(TestCase):
         Buyer user must not have that attribute:
             * seller
     """
+
     @classmethod
     def setUpTestData(cls):
         cls.user_register_data = {
@@ -170,6 +173,7 @@ class CurrentUserGetPage(TestCase):
     """
         Tests that only current users can retrieve information about themselves
     """
+
     @classmethod
     def setUpTestData(cls):
         cls.user_register_data = {
@@ -196,3 +200,61 @@ class CurrentUserGetPage(TestCase):
         response = c.get('http://127.0.0.1:8000/bs_v1/me')
         self.assertEqual(response.status_code, 200)
 
+
+class TestUsersEndpoints(TestCase):
+    """
+        Tests user management functionality that provide to stuff (is_stuff = True).
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.test_no_staff_user = BookStoreUser.objects.create_user(
+            email='test_email@gmail.com',
+            username='test_username',
+            password='some_password',
+            is_seller=True,
+        )
+        cls.user_login_data = {
+            'email': 'test_email@gmail.com',
+            'password': 'some_password',
+        }
+        cls.admin = BookStoreUser.objects.create_superuser(
+            username='admin',
+            email='admin@admin.com',
+            password='admin',
+            is_seller=True,
+            is_stuff=True,
+        )
+        cls.admin_login_data = {
+            'email': 'admin@admin.com',
+            'password': 'admin'
+        }
+
+    def test_only_stuff_can_access_users_management(self):
+        """
+            Try to log in as admin and get users/ page
+        """
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.admin_login_data)
+        self.assertEqual(login_response.status_code, 200)
+        get_response = c.get('http://127.0.0.1:8000/bs_v1/users/')
+        self.assertEqual(get_response.status_code, 200)
+
+    def test_no_stuff_cannot_access_users_management(self):
+        """
+            Log in no_stuff user and try to get request 'users/'.
+            Test passed well if returned status_code 403.
+        """
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.user_login_data)
+        self.assertEqual(login_response.status_code, 200)
+        get_response = c.get('http://127.0.0.1:8000/bs_v1/users/')
+        self.assertEqual(get_response.status_code, 403)
+
+    def test_anonymous_cannot_access_users_management(self):
+        """
+            Test anonymous user cannot access users management
+        """
+        c = Client()
+        response = c.get('http://127.0.0.1:8000/bs_v1/users/')
+        self.assertEqual(response.status_code, 403)

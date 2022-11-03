@@ -37,7 +37,7 @@ class BookStoreUserUpdateSerializer(serializers.ModelSerializer):
         fields = ('username',)
 
 
-class BookStoreUserCurrentSerializer(serializers.ModelSerializer):
+class BookStoreUserSerializer(serializers.ModelSerializer):
     class Meta:
         model = BookStoreUser
         fields = ('username', 'email', 'is_seller')
