@@ -1,7 +1,12 @@
 from dj_rest_auth.registration.serializers import RegisterSerializer
 from dj_rest_auth.serializers import LoginSerializer
 from rest_framework import serializers
-from users.models import Seller, BookStoreUser
+from users.models import (
+    Seller,
+    ShoppingCart,
+    Favourites,
+    History, BookStoreUser,
+)
 
 
 class BookStoreUserRegisterSerializer(RegisterSerializer):
@@ -11,11 +16,36 @@ class BookStoreUserRegisterSerializer(RegisterSerializer):
         user.is_seller = self.data['is_seller']
         if user.is_seller:
             Seller.objects.create(user=user)
+        # elif user.is_buyer:
+        #     ShoppingCart.objects.create(user=user)
+        #     Favourites.objects.create(user=user)
+        #     History.objects.create(user=user)
         user.save()
 
+
 class BookStoreUserLoginSerializer(LoginSerializer):
+    """
+        Serializer provides log in logic.
+        Field username is excluded because email and password are used to log in.
+    """
     username = None
-    # def get_auth_user_using_allauth(self, username, email, password):
-    #     return self._validate_email(email, password)
 
 
+class BookStoreUserUpdateSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookStoreUser
+        fields = ('username',)
+
+
+class BookStoreUserCurrentSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = BookStoreUser
+        fields = ('username', 'email', 'is_seller')
+        extra_kwargs = {
+            'email': {'read_only': True},
+            'is_seller': {'read_only': True}
+        }
+
+    # def validate_email(self, email):
+    #     print(f'------------in email validation')
+    #     raise serializers.ValidationError('email field is read-only')

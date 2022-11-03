@@ -12,7 +12,6 @@ class RegistrationBuyerBookStoreUserTests(TestCase):
         Buyer user must not have that attribute:
             * seller
     """
-
     @classmethod
     def setUpTestData(cls):
         cls.user_register_data = {
@@ -165,3 +164,35 @@ class SellerUserLoginLogout(TestCase):
         self.assertEqual(login_response.status_code, 200)
         logout_response = c.post('http://127.0.0.1:8000/bs_v1/logout')
         self.assertEqual(logout_response.status_code, 200)
+
+
+class CurrentUserGetPage(TestCase):
+    """
+        Tests that only current users can retrieve information about themselves
+    """
+    @classmethod
+    def setUpTestData(cls):
+        cls.user_register_data = {
+            "username": "test_username",
+            "email": "test_email@test.com",
+            "password1": "some_password",
+            "password2": "some_password",
+            "is_seller": True
+        }
+        cls.user_login_data = {
+            "email": "test_email@test.com",
+            "password": "some_password",
+        }
+
+    def test_current_user_get(self):
+        """
+        Tests that only current users can retrieve information about themselves
+        """
+        c = Client()
+        create_response = c.post('http://127.0.0.1:8000/bs_v1/signup', data=self.user_register_data)
+        self.assertEqual(create_response.status_code, 201)
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.user_login_data)
+        self.assertEqual(login_response.status_code, 200)
+        response = c.get('http://127.0.0.1:8000/bs_v1/me')
+        self.assertEqual(response.status_code, 200)
+
