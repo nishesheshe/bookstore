@@ -5,8 +5,10 @@ from users.models import (
     Seller,
     ShoppingCart,
     Favourites,
-    History, BookStoreUser,
+    History,
+    BookStoreUser,
 )
+from books.models import Book
 
 
 class BookStoreUserRegisterSerializer(RegisterSerializer):
@@ -46,6 +48,13 @@ class BookStoreUserSerializer(serializers.ModelSerializer):
             'is_seller': {'read_only': True}
         }
 
-    # def validate_email(self, email):
-    #     print(f'------------in email validation')
-    #     raise serializers.ValidationError('email field is read-only')
+
+class BookCreationSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Book
+        fields = '__all__'
+
+    def validate_isbn(self, value):
+        if len(str(value)) != 13:
+            raise serializers.ValidationError('ISBN number must be of length 13')
+        return value

@@ -6,12 +6,12 @@ from django.db import models
 
 
 class BookStoreUserManager(BaseUserManager):
-    def create_user(self, email: str, username: str, password: str, is_seller):
+    def create_user(self, email: str, username: str, password: str, is_seller=False, is_staff=False):
         user = BookStoreUser(
             email=self.normalize_email(email),
             username=username,
             is_seller=is_seller,
-            is_staff=False
+            is_staff=is_staff
         )
         user.set_password(password)
         user.save()
@@ -19,14 +19,14 @@ class BookStoreUserManager(BaseUserManager):
             Seller.objects.create(user=user)
         return user
 
-    def create_superuser(self, email: str, username: str, password: str, is_seller, is_stuff=True):
+    def create_superuser(self, email: str, username: str, password: str, is_seller=True, is_stuff=True):
         user = BookStoreUser(
             email=self.normalize_email(email),
             username=username,
             is_seller=is_seller,
             is_staff=is_stuff
         )
-        user.is_staff = True
+        user.is_staff = True # remove redundancy
         user.set_password(password)
         user.save(using=self._db)
         if is_seller:
@@ -73,6 +73,7 @@ class BookStoreUser(AbstractBaseUser):
 
 
 class Seller(models.Model):
+    # TODO add company_name
     user = models.OneToOneField(
         BookStoreUser,
         on_delete=models.CASCADE,

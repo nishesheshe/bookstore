@@ -19,9 +19,12 @@ class UsersCreateLoginMixin:
 
     @classmethod
     def buyer_user_creation_data(cls):
+        """
+            Defines buyer user data to sign up via API.
+        """
         return {
-            "username": "test_username",
-            "email": "test_email@test.com",
+            "username": "test_buyer",
+            "email": "test_buyer@test.com",
             "password1": "some_password",
             "password2": "some_password",
             "is_seller": False
@@ -29,9 +32,12 @@ class UsersCreateLoginMixin:
 
     @classmethod
     def seller_user_creation_data(cls):
+        """
+            Defines seller user data to sign up via API.
+        """
         return {
-            "username": "test_username",
-            "email": "test_email@test.com",
+            "username": "test_seller",
+            "email": "test_seller@test.com",
             "password1": "some_password",
             "password2": "some_password",
             "is_seller": True
@@ -39,6 +45,9 @@ class UsersCreateLoginMixin:
 
     @classmethod
     def admin_user_creation_data(cls):
+        """
+            Defines admin user data.
+        """
         return {
             "username": "test_admin",
             "email": "test_admin@admin.com",
@@ -74,28 +83,34 @@ class UsersCreateLoginMixin:
 
     @classmethod
     def create_buyer_user(cls):
-        return BookStoreUser.objects.create_user(
-            username="test_username",
-            email="test_email@test.com",
-            password="some_password",
-        )
+        user_creation_data = cls.buyer_user_creation_data()
+        data_for_creating = cls.get_data_for_create_user_via_model(user_creation_data)
+        return BookStoreUser.objects.create_user(**data_for_creating)
 
     @classmethod
     def create_seller_user(cls):
-        return BookStoreUser.objects.create_user(
-            username="test_username",
-            email="test_email@test.com",
-            password="some_password",
-            is_seller=True,
-        )
+        user_creation_data = cls.seller_user_creation_data()
+        data_for_creating = cls.get_data_for_create_user_via_model(user_creation_data)
+        return BookStoreUser.objects.create_user(**data_for_creating, is_seller=True)
 
     @classmethod
     def create_admin_user(cls):
-        return BookStoreUser.objects.create_superuser(
-            username="test_admin",
-            email="test_admin@admin.com",
-            password="admin",
-        )
+        user_creation_data = cls.admin_user_creation_data()
+        data_for_creating = cls.get_data_for_create_user_via_model(user_creation_data)
+        return BookStoreUser.objects.create_superuser(**data_for_creating)
+
+    @staticmethod
+    def get_data_for_create_user_via_model(user_creation_data):
+        """
+        :param user_creation_data: get user_creation_data and parse it
+            into data that we can use to create user via model
+        :return: return data for create user via model
+        """
+        return {
+            "username": user_creation_data.pop("username"),
+            "email": user_creation_data.pop("email"),
+            "password": user_creation_data.pop("password1"),
+        }
 
 
 class RegistrationBuyerBookStoreUserTests(TestCase, UsersCreateLoginMixin):
@@ -289,3 +304,52 @@ class TestUsersEndpoints(TestCase, UsersCreateLoginMixin):
         c = Client()
         response = c.get('http://127.0.0.1:8000/bs_v1/users/')
         self.assertEqual(response.status_code, 403)
+
+
+class CreateBookTests(TestCase, UsersCreateLoginMixin):
+    @classmethod
+    def setUpTestData(cls):
+
+        # define buyer user and login data
+        cls.buyer_user = cls.create_buyer_user()
+        cls._buyer_user_login_data = cls.buyer_user_login_data()  # I used "_" to avoid name_conflict
+
+        # define seller user and login data
+        cls.seller_user = cls.create_seller_user()
+        cls._seller_user_login_data = cls.seller_user_login_data()  # I used "_" to avoid name conflict
+        # define book_data to create
+        cls.book_data = {
+            "rating": 5,
+            "author": "Joan Rowling",
+            "translator": "No one",
+            "publisher": "Gag Books",
+            "genre": "Fantastic",
+            "cost": 2000,
+            "article_number": 2414,
+            "isbn": 1111111111111,
+            "pages": 256,
+            "language": "English",
+            "description": "The history about...",
+            "is_on_sale": True,
+            "count": 5000,
+            "seller": cls.seller_user.seller.pk
+        }
+
+    def test_buyer_access_is_forbidden(self):
+        """
+            tests the buyer user for access to create_book logic. access must be forbidden
+        """
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self._buyer_user_login_data)
+        self.assertEqual(login_response.status_code, 200)
+        get_response = c.get('http://127.0.0.1:8000/bs_v1/create_book')
+        self.assertEqual(get_response.status_code, 403)
+
+    def test_seller_create_book(self):
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self._seller_user_login_data)
+        self.assertEqual(login_response.status_code, 200)
+        book_create_response = c.post('http://127.0.0.1:8000/bs_v1/create_book', data=self.book_data)
+        print(book_create_response.json())
+        self.assertEqual(book_create_response.status_code, 201)
+
