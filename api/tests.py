@@ -8,7 +8,97 @@ from users.models import BookStoreUser
 """
 
 
-class RegistrationBuyerBookStoreUserTests(TestCase):
+class UsersCreateLoginMixin:
+    """
+        Mixin provides functions to create test users:
+            * Buyer user
+            * Seller user
+            * Admin user
+        And properties to retrieve registration and login data
+    """
+
+    @classmethod
+    def buyer_user_creation_data(cls):
+        return {
+            "username": "test_username",
+            "email": "test_email@test.com",
+            "password1": "some_password",
+            "password2": "some_password",
+            "is_seller": False
+        }
+
+    @classmethod
+    def seller_user_creation_data(cls):
+        return {
+            "username": "test_username",
+            "email": "test_email@test.com",
+            "password1": "some_password",
+            "password2": "some_password",
+            "is_seller": True
+        }
+
+    @classmethod
+    def admin_user_creation_data(cls):
+        return {
+            "username": "test_admin",
+            "email": "test_admin@admin.com",
+            "password1": "admin",
+            "password2": "admin",
+            "is_seller": True,
+            "is_staff": True
+        }
+
+    @classmethod
+    def buyer_user_login_data(cls):
+        buyer_data = cls.buyer_user_creation_data()
+        return {
+            "email": buyer_data.pop("email"),
+            "password": buyer_data.pop("password1")
+        }
+
+    @classmethod
+    def seller_user_login_data(cls):
+        seller_data = cls.seller_user_creation_data()
+        return {
+            "email": seller_data.pop("email"),
+            "password": seller_data.pop("password1")
+        }
+
+    @classmethod
+    def admin_user_login_data(cls):
+        admin_data = cls.admin_user_creation_data()
+        return {
+            "email": admin_data.pop("email"),
+            "password": admin_data.pop("password1")
+        }
+
+    @classmethod
+    def create_buyer_user(cls):
+        return BookStoreUser.objects.create_user(
+            username="test_username",
+            email="test_email@test.com",
+            password="some_password",
+        )
+
+    @classmethod
+    def create_seller_user(cls):
+        return BookStoreUser.objects.create_user(
+            username="test_username",
+            email="test_email@test.com",
+            password="some_password",
+            is_seller=True,
+        )
+
+    @classmethod
+    def create_admin_user(cls):
+        return BookStoreUser.objects.create_superuser(
+            username="test_admin",
+            email="test_admin@admin.com",
+            password="admin",
+        )
+
+
+class RegistrationBuyerBookStoreUserTests(TestCase, UsersCreateLoginMixin):
     """
         These set of tests check out whether buyer user registration is done successfully.
         Buyer user must not have that attribute:
@@ -17,17 +107,8 @@ class RegistrationBuyerBookStoreUserTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user_register_data = {
-            "username": "test_username",
-            "email": "test_email@test.com",
-            "password1": "some_password",
-            "password2": "some_password",
-            "is_seller": False
-        }
-        cls.user_login_data = {
-            "email": "test_email@test.com",
-            "password": "some_password",
-        }
+        cls.user_register_data = cls.buyer_user_creation_data()
+        cls.user_login_data = cls.buyer_user_login_data()
 
     def test_user_register_success(self):
         """
@@ -48,7 +129,7 @@ class RegistrationBuyerBookStoreUserTests(TestCase):
         self.assertFalse(hasattr(user, 'seller'))
 
 
-class RegistrationSellerBookStoreUserTests(TestCase):
+class RegistrationSellerBookStoreUserTests(TestCase, UsersCreateLoginMixin):
     """
         These set of tests check out whether seller user registration is done successfully.
         Seller user must have that attribute:
@@ -57,13 +138,7 @@ class RegistrationSellerBookStoreUserTests(TestCase):
 
     @classmethod
     def setUpTestData(cls):
-        cls.user_register_data = {
-            "username": "test_username",
-            "email": "test_email@test.com",
-            "password1": "some_password",
-            "password2": "some_password",
-            "is_seller": True
-        }
+        cls.user_register_data = cls.seller_user_creation_data()
 
     def test_seller_user_register_success(self):
         """
@@ -85,24 +160,15 @@ class RegistrationSellerBookStoreUserTests(TestCase):
         self.assertTrue(hasattr(user, 'seller'))
 
 
-class BuyerUserLogin(TestCase):
+class BuyerUserLogin(TestCase, UsersCreateLoginMixin):
     """
         These tests suite check out buyer user login.
     """
 
     @classmethod
     def setUpTestData(cls):
-        cls.user_register_data = {
-            "username": "test_username",
-            "email": "test_email@test.com",
-            "password1": "some_password",
-            "password2": "some_password",
-            "is_seller": False
-        }
-        cls.user_login_data = {
-            "email": "test_email@test.com",
-            "password": "some_password",
-        }
+        cls.user_register_data = cls.buyer_user_creation_data()
+        cls.user_login_data = cls.buyer_user_login_data()
 
     def test_buyer_user_login(self):
         """
@@ -127,24 +193,15 @@ class BuyerUserLogin(TestCase):
         self.assertEqual(logout_response.status_code, 200)
 
 
-class SellerUserLoginLogout(TestCase):
+class SellerUserLoginLogout(TestCase, UsersCreateLoginMixin):
     """
         These tests suite check out seller user login/logout.
     """
 
     @classmethod
     def setUpTestData(cls):
-        cls.user_register_data = {
-            "username": "test_username",
-            "email": "test_email@test.com",
-            "password1": "some_password",
-            "password2": "some_password",
-            "is_seller": True
-        }
-        cls.user_login_data = {
-            "email": "test_email@test.com",
-            "password": "some_password",
-        }
+        cls.user_register_data = cls.seller_user_creation_data()
+        cls.user_login_data = cls.seller_user_login_data()
 
     def test_seller_user_login(self):
         """
@@ -169,24 +226,15 @@ class SellerUserLoginLogout(TestCase):
         self.assertEqual(logout_response.status_code, 200)
 
 
-class CurrentUserGetPage(TestCase):
+class CurrentUserGetPage(TestCase, UsersCreateLoginMixin):
     """
         Tests that only current users can retrieve information about themselves
     """
 
     @classmethod
     def setUpTestData(cls):
-        cls.user_register_data = {
-            "username": "test_username",
-            "email": "test_email@test.com",
-            "password1": "some_password",
-            "password2": "some_password",
-            "is_seller": True
-        }
-        cls.user_login_data = {
-            "email": "test_email@test.com",
-            "password": "some_password",
-        }
+        cls.user_register_data = cls.seller_user_creation_data()
+        cls.user_login_data = cls.seller_user_login_data()
 
     def test_current_user_get(self):
         """
@@ -201,34 +249,17 @@ class CurrentUserGetPage(TestCase):
         self.assertEqual(response.status_code, 200)
 
 
-class TestUsersEndpoints(TestCase):
+class TestUsersEndpoints(TestCase, UsersCreateLoginMixin):
     """
-        Tests user management functionality that provide to stuff (is_stuff = True).
+        Tests only staff can access users management functionality.
     """
 
     @classmethod
     def setUpTestData(cls):
-        cls.test_no_staff_user = BookStoreUser.objects.create_user(
-            email='test_email@gmail.com',
-            username='test_username',
-            password='some_password',
-            is_seller=True,
-        )
-        cls.user_login_data = {
-            'email': 'test_email@gmail.com',
-            'password': 'some_password',
-        }
-        cls.admin = BookStoreUser.objects.create_superuser(
-            username='admin',
-            email='admin@admin.com',
-            password='admin',
-            is_seller=True,
-            is_stuff=True,
-        )
-        cls.admin_login_data = {
-            'email': 'admin@admin.com',
-            'password': 'admin'
-        }
+        cls.test_no_staff_user = cls.create_buyer_user()
+        cls.user_login_data = cls.buyer_user_login_data()
+        cls.admin = cls.create_admin_user()
+        cls.admin_login_data = cls.admin_user_login_data()
 
     def test_only_stuff_can_access_users_management(self):
         """
