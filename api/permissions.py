@@ -12,3 +12,9 @@ class IsCurrentUserOrReadOnly(permissions.BasePermission):
         return obj == request.user
 
 
+class IsSellerUser(permissions.BasePermission):
+    def has_permission(self, request, view):
+        if hasattr(request.user, 'seller'):
+            return True
+        return False
+
