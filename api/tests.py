@@ -14,7 +14,7 @@ class UsersCreateLoginMixin:
             * Buyer user
             * Seller user
             * Admin user
-        And properties to retrieve registration and login data
+        And methods to get creation and login data in 'dict' type.
     """
 
     @classmethod
