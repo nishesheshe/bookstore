@@ -1,6 +1,7 @@
 from django.test import TestCase
 from django.test import Client
 
+from books.models import Book
 from users.models import BookStoreUser
 
 """
@@ -319,7 +320,6 @@ class CreateBookTests(TestCase, UsersCreateLoginMixin):
         cls._seller_user_login_data = cls.seller_user_login_data()  # I used "_" to avoid name conflict
         # define book_data to create
         cls.book_data = {
-            "rating": 5,
             "author": "Joan Rowling",
             "translator": "No one",
             "publisher": "Gag Books",
@@ -350,6 +350,6 @@ class CreateBookTests(TestCase, UsersCreateLoginMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self._seller_user_login_data)
         self.assertEqual(login_response.status_code, 200)
         book_create_response = c.post('http://127.0.0.1:8000/bs_v1/create_book', data=self.book_data)
-        print(book_create_response.json())
         self.assertEqual(book_create_response.status_code, 201)
+
 

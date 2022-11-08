@@ -52,9 +52,15 @@ class BookStoreUserSerializer(serializers.ModelSerializer):
 class BookCreationSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
-        fields = '__all__'
+        exclude = ('rating', )
 
     def validate_isbn(self, value):
         if len(str(value)) != 13:
             raise serializers.ValidationError('ISBN number must be of length 13')
         return value
+
+
+# class BookEditSerializer(serializers.ModelSerializer):
+#     class Meta:
+#         model = Book
+#         exclude = ('seller', )
