@@ -1,11 +1,12 @@
 from dj_rest_auth.registration.views import RegisterView
 from rest_framework.response import Response
 from users.models import BookStoreUser
-from .permissions import IsCurrentUserOrReadOnly, IsSellerUser
+from .permissions import IsCurrentUserOrReadOnly, IsSellerUser, IsSellerOwner
 from .serializers import (
     BookStoreUserRegisterSerializer,
     BookStoreUserSerializer,
     BookCreationSerializer,
+    BookEditSerializer,
 )
 from rest_framework import generics, viewsets
 from rest_framework.permissions import (
@@ -47,4 +48,12 @@ class BookCreateView(generics.CreateAPIView):
     permission_classes = (IsAuthenticated, IsSellerUser)
     serializer_class = BookCreationSerializer
 
+
+class BookEditView(generics.RetrieveUpdateAPIView):
+    permission_classes = (IsAuthenticated, IsSellerUser, IsSellerOwner)
+    serializer_class = BookEditSerializer
+    lookup_field = 'isbn'
+
+    def get_queryset(self):
+        return Book.objects.all()
 

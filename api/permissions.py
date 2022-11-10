@@ -18,3 +18,10 @@ class IsSellerUser(permissions.BasePermission):
             return True
         return False
 
+
+class IsSellerOwner(permissions.BasePermission):
+    def has_object_permission(self, request, view, obj):
+        if request.user.seller == obj.seller:
+            return True
+        return False
+
