@@ -26,7 +26,6 @@ class BookStoreUserManager(BaseUserManager):
             is_seller=is_seller,
             is_staff=is_stuff
         )
-        user.is_staff = True # remove redundancy
         user.set_password(password)
         user.save(using=self._db)
         if is_seller:
