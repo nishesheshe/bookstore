@@ -8,7 +8,6 @@ class IsCurrentUserOrReadOnly(permissions.BasePermission):
     def has_object_permission(self, request, view, obj):
         if request.method in permissions.SAFE_METHODS:
             return True
-        print(f'----------Are you current user {obj==request.user}')
         return obj == request.user
 
 
