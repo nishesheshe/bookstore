@@ -56,6 +56,9 @@ class BookStoreUser(AbstractBaseUser):
     is_staff = models.BooleanField(
         default=False
     )
+    is_active = models.BooleanField(
+        default=True
+    )
     REQUIRED_FIELDS = ['username', 'is_seller']
     USERNAME_FIELD = 'email'
     objects = BookStoreUserManager()
