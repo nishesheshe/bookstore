@@ -16,10 +16,10 @@ router = DefaultRouter()
 router.register(r'users', BookStoreUserViewSet, basename='user')
 router.register(r'books', BookViewSet, basename='book')
 urlpatterns = [
-    path('signup', BookStoreUserRegisterView.as_view()),
-    path('login', LoginView.as_view()),
-    path('logout', LogoutView.as_view()),
-    path('me', BookStoreUserCurrentView.as_view()),
-    path('create_book', BookCreateView.as_view()),
-    path('edit_book/<slug:isbn>', BookEditView.as_view()),
+    path('signup', BookStoreUserRegisterView.as_view(), name='signup'),
+    path('login', LoginView.as_view(), name='login'),
+    path('logout', LogoutView.as_view(), name='logout'),
+    path('profile', BookStoreUserCurrentView.as_view(), name='profile'),
+    path('create_book', BookCreateView.as_view(), name='create_book'),
+    path('edit_book/<slug:isbn>', BookEditView.as_view(), name='edit_book'),
 ] + router.urls
