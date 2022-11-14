@@ -1,3 +1,7 @@
+from datetime import date
+
+from django.utils import timezone
+
 from django.contrib.auth.base_user import (
     AbstractBaseUser,
     BaseUserManager,
@@ -59,7 +63,7 @@ class BookStoreUser(AbstractBaseUser):
     @property
     def is_buyer(self):
         """
-        :return: returns True if bookstore user is not buyer
+        :return: True if bookstore user is not buyer
         """
         return not self.is_seller
 
@@ -132,5 +136,11 @@ class History(UserCartAbstract):
     """
     The class provides user's history.
     Contains data about user's checked books.
+    date_of_view: represents when book was list time viewed.
     """
-    pass
+    date_of_view = models.DateField(
+        auto_now_add=True,
+    )
+
+    def __str__(self):
+        return f'{self.book.title} {self.date_of_view}'
