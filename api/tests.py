@@ -3,6 +3,7 @@ from django.test import Client
 import random
 from books.models import Book
 from users.models import BookStoreUser
+from users.shortcuts import get_user_books_history, get_user_today_history
 
 """
     Note: Seller user is just a BookStoreUser that has seller attribute.
@@ -551,3 +552,94 @@ class EditBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
             content_type='application/json'
         )
         self.assertEqual(edit_response.status_code, 403)
+
+
+class GetBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
+    """
+        Suite of tests checks that any user can retrieve book information.
+        Book add to user history if user is buyer.
+    """
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.buyer = cls.create_user_via_model(buyer=True)
+        cls.buyer_login_data = cls.generate_user_login_data(buyer=True)
+
+        cls._seller = cls.create_user_via_model(seller=True)
+        cls.seller_login_data = cls.generate_user_login_data(seller=True)
+
+        cls.book = cls.create_book_via_model(cls._seller.seller)
+
+    def test_buyer_get_book_information(self):
+        """
+            Tests buyer can get book page and book information.
+            Checks that returned book is equal to created book.
+        :return:
+        """
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_login_data)
+        self.assertEqual(login_response.status_code, 200)
+
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        self.assertEqual(get_book_response.status_code, 200)
+
+    def test_seller_get_book_information(self):
+        """
+            Tests seller can get book page and book information.
+        :return:
+        """
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.seller_login_data)
+        self.assertEqual(login_response.status_code, 200)
+
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        self.assertEqual(get_book_response.status_code, 200)
+
+    def test_anonymous_get_book_information(self):
+        """
+            Tests anonymous can get book page and book information.
+        :return:
+        """
+        c = Client()
+
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        self.assertEqual(get_book_response.status_code, 200)
+
+
+class TestBuyerHistory(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
+
+    @classmethod
+    def setUpTestData(cls):
+        cls.buyer = cls.create_user_via_model(buyer=True)
+        cls.buyer_user_login_data = cls.generate_user_login_data(buyer=True)
+        cls._seller = cls.create_user_via_model(seller=True)
+
+        cls.book = cls.create_book_via_model(seller=cls._seller.seller)
+
+    def test_book_adding_to_history(self):
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_user_login_data)
+        self.assertEqual(login_response.status_code, 200)
+
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        self.assertEqual(get_book_response.status_code, 200)
+        self.assertIn(self.book, get_user_books_history(self.buyer))
+
+    def test_book_not_duplicating_to_history(self):
+        """
+            Checks the book is not duplicating in today history. In today history may be only one instance of book.
+        """
+        c = Client()
+        login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_user_login_data)
+        self.assertEqual(login_response.status_code, 200)
+
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        self.assertEqual(get_book_response.status_code, 200)
+
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        self.assertEqual(get_book_response.status_code, 200)
+
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        self.assertEqual(get_book_response.status_code, 200)
+
+        self.assertEqual(len(get_user_today_history(self.buyer)), 1)

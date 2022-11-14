@@ -69,3 +69,12 @@ class BookEditSerializer(serializers.ModelSerializer):
         if len(str(value)) != 13:
             raise serializers.ValidationError('ISBN number must be of length 13')
         return value
+
+
+class BookSerializer(serializers.ModelSerializer):
+    """
+        Serializer that represents information about book.
+    """
+    class Meta:
+        model = Book
+        fields = '__all__'

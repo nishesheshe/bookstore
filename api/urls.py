@@ -4,7 +4,8 @@ from .views import (
     BookStoreUserCurrentView,
     BookStoreUserViewSet,
     BookCreateView,
-    BookEditView
+    BookEditView,
+    BookViewSet
 )
 from dj_rest_auth.views import (
     LoginView,
@@ -13,6 +14,7 @@ from dj_rest_auth.views import (
 from rest_framework.routers import DefaultRouter
 router = DefaultRouter()
 router.register(r'users', BookStoreUserViewSet, basename='user')
+router.register(r'books', BookViewSet, basename='book')
 urlpatterns = [
     path('signup', BookStoreUserRegisterView.as_view()),
     path('login', LoginView.as_view()),
