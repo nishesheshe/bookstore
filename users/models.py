@@ -66,7 +66,7 @@ class BookStoreUser(AbstractBaseUser):
     @property
     def is_buyer(self):
         """
-        :return: True if bookstore user is not buyer
+        :return: True if bookstore user is buyer
         """
         return not self.is_seller
 
