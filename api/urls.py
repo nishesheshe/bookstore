@@ -21,5 +21,5 @@ urlpatterns = [
     path('logout', LogoutView.as_view(), name='logout'),
     path('profile', BookStoreUserCurrentView.as_view(), name='profile'),
     path('create_book', BookCreateView.as_view(), name='create_book'),
-    path('edit_book/<slug:isbn>', BookEditView.as_view(), name='edit_book'),
+    path('edit_book/<slug:article_number>', BookEditView.as_view(), name='edit_book'),
 ] + router.urls

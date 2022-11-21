@@ -5,6 +5,7 @@ from users.models import (
     BookStoreUser,
     Favourites, History,
 )
+from rest_framework.views import APIView
 from .permissions import IsCurrentUserOrReadOnly, IsSellerUser, IsSellerOwner
 from .serializers import (
     BookStoreUserRegisterSerializer,
@@ -58,7 +59,7 @@ class BookCreateView(generics.CreateAPIView):
 class BookEditView(generics.RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated, IsSellerUser, IsSellerOwner)
     serializer_class = BookEditSerializer
-    lookup_field = 'isbn'
+    lookup_field = 'article_number'
 
     def get_queryset(self):
         return Book.objects.all()
@@ -84,3 +85,12 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
             if book not in get_user_today_history(request.user):
                 History.objects.create(user=request.user, book=book)
         return Response(serializer.data)
+
+
+class AddBookToFavouritesView(APIView):
+    def post(self, request):
+        print(request.data)
+
+
+
+
