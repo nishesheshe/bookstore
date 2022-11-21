@@ -1,7 +1,7 @@
 from rest_framework import permissions
 
 
-class IsCurrentUserOrReadOnly(permissions.BasePermission):
+class IsSelfOrAdmin(permissions.BasePermission):
     """
         Permission that checks is user has access as owner or not.
     """
@@ -23,4 +23,9 @@ class IsSellerOwner(permissions.BasePermission):
         if request.user.seller == obj.seller:
             return True
         return False
+
+
+class IsBuyer(permissions.BasePermission):
+    def has_permission(self, request, view):
+        return request.user.is_buyer
 
