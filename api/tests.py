@@ -390,7 +390,7 @@ class CurrentUserGetPage(TestCase, GenerateUserDataMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.user_login_data)
         self.assertEqual(login_response.status_code, 200)
 
-        response = c.get('http://127.0.0.1:8000/bs_v1/me')
+        response = c.get('http://127.0.0.1:8000/bs_v1/profile')
         self.assertEqual(response.status_code, 200)
 
 
@@ -517,7 +517,7 @@ class EditBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
 
         # editing original book
         book_edit_response = c.patch(
-            'http://127.0.0.1:8000/bs_v1/edit_book/' + str(self.book.isbn),
+            'http://127.0.0.1:8000/bs_v1/edit_book/' + str(self.book.article_number),
             data=self._data_to_edit_book,
             content_type='application/json'
         )
@@ -536,7 +536,7 @@ class EditBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.not_seller_owner_login_data)
         self.assertEqual(login_response.status_code, 200)
         edit_response = c.patch(
-            'http://127.0.0.1:8000/bs_v1/edit_book/' + str(self.book.isbn),
+            'http://127.0.0.1:8000/bs_v1/edit_book/' + str(self.book.article_number),
             data=self._data_to_edit_book,
             content_type='application/json'
         )
@@ -547,7 +547,7 @@ class EditBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.not_seller_owner_login_data)
         self.assertEqual(login_response.status_code, 200)
         edit_response = c.patch(
-            'http://127.0.0.1:8000/bs_v1/edit_book/' + str(self.book.isbn),
+            'http://127.0.0.1:8000/bs_v1/edit_book/' + str(self.book.article_number),
             data=self._data_to_edit_book,
             content_type='application/json'
         )
@@ -580,7 +580,7 @@ class GetBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_login_data)
         self.assertEqual(login_response.status_code, 200)
 
-        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.article_number) + '/')
         self.assertEqual(get_book_response.status_code, 200)
 
     def test_seller_get_book_information(self):
@@ -592,7 +592,7 @@ class GetBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.seller_login_data)
         self.assertEqual(login_response.status_code, 200)
 
-        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.article_number) + '/')
         self.assertEqual(get_book_response.status_code, 200)
 
     def test_anonymous_get_book_information(self):
@@ -602,7 +602,7 @@ class GetBookTests(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
         """
         c = Client()
 
-        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.article_number) + '/')
         self.assertEqual(get_book_response.status_code, 200)
 
 
@@ -621,7 +621,7 @@ class TestBuyerHistory(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_user_login_data)
         self.assertEqual(login_response.status_code, 200)
 
-        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.article_number) + '/')
         self.assertEqual(get_book_response.status_code, 200)
         self.assertIn(self.book, get_user_books_history(self.buyer))
 
@@ -633,13 +633,45 @@ class TestBuyerHistory(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
         login_response = c.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_user_login_data)
         self.assertEqual(login_response.status_code, 200)
 
-        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        # make 3 get request's to check that only one history objects has been created
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.article_number) + '/')
         self.assertEqual(get_book_response.status_code, 200)
 
-        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.article_number) + '/')
         self.assertEqual(get_book_response.status_code, 200)
 
-        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.isbn) + '/')
+        get_book_response = c.get('http://127.0.0.1:8000/bs_v1/books/' + str(self.book.article_number) + '/')
         self.assertEqual(get_book_response.status_code, 200)
 
+        # only one current book can be added to history per today
         self.assertEqual(len(get_user_today_history(self.buyer)), 1)
+
+
+class TestBuyerFavourites(TestCase, GenerateUserDataMixin, GenerateBookDataMixin):
+    @classmethod
+    def setUpTestData(cls):
+        # create buyer
+        cls.buyer = cls.create_user_via_model(buyer=True)
+        cls.buyer_login = cls.generate_user_login_data(buyer=True)
+
+        cls.buyer_client = Client()
+        cls.buyer_client.post('http://127.0.0.1:8000/bs_v1/login', data=cls.buyer_login)
+
+        cls._seller = cls.create_user_via_model(seller=True)
+        cls.book = cls.create_book_via_model(seller=cls._seller.seller)
+
+    def test_book_adding_to_favourites(self):
+        """
+            Tests that book has been added to favourites and can be retrieved.
+        """
+        add_to_favourites_response = self.buyer_client.post(
+            'http://127.0.0.1:8000/bs_v1/add_book_to_favourites',
+            data={'article_number': self.book.article_number}
+        )
+        self.assertEqual(add_to_favourites_response.status_code, 200)
+
+        login_response = self.buyer_client.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_login)
+        self.assertEqual(login_response.status_code, 200)
+
+        favorites_response = self.buyer_client.get('http://127.0.0.1:8000/bs_v1/favourites')
+        self.assertEqual(self.book.article_number, favorites_response.data[0]['article_number'])

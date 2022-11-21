@@ -78,3 +78,16 @@ class BookSerializer(serializers.ModelSerializer):
     class Meta:
         model = Book
         fields = '__all__'
+
+
+class BookAddToFavouritesSerializer(serializers.ModelSerializer):
+
+    class Meta:
+        model = Book
+        fields = ('article_number', )
+
+
+class BookFromFavouritesSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = Favourites
+        fields = ('article_number', )

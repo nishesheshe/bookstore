@@ -1,18 +1,19 @@
 from dj_rest_auth.registration.views import RegisterView
 from rest_framework.response import Response
+from rest_framework import status
 from django.shortcuts import get_object_or_404
 from users.models import (
     BookStoreUser,
     Favourites, History,
 )
 from rest_framework.views import APIView
-from .permissions import IsCurrentUserOrReadOnly, IsSellerUser, IsSellerOwner
+from .permissions import IsSelfOrAdmin, IsSellerUser, IsSellerOwner, IsBuyer
 from .serializers import (
     BookStoreUserRegisterSerializer,
     BookStoreUserSerializer,
     BookCreationSerializer,
     BookEditSerializer,
-    BookSerializer,
+    BookSerializer, BookAddToFavouritesSerializer, BookFromFavouritesSerializer,
 )
 from rest_framework import generics, viewsets
 from rest_framework.permissions import (
@@ -29,7 +30,7 @@ class BookStoreUserRegisterView(RegisterView):
 
 class BookStoreUserCurrentView(generics.RetrieveUpdateAPIView):
     serializer_class = BookStoreUserSerializer
-    permission_classes = (IsCurrentUserOrReadOnly, IsAuthenticated)
+    permission_classes = (IsSelfOrAdmin, IsAuthenticated)
 
     def get(self, request, *args, **kwargs):
         serializer = BookStoreUserSerializer(request.user)
@@ -87,10 +88,25 @@ class BookViewSet(viewsets.ReadOnlyModelViewSet):
         return Response(serializer.data)
 
 
-class AddBookToFavouritesView(APIView):
+class AddBookToFavouritesView(generics.GenericAPIView):
+    permission_classes = [IsBuyer, ]
+    serializer_class = BookAddToFavouritesSerializer
+
     def post(self, request):
-        print(request.data)
+        Favourites.objects.create(
+            user=request.user,
+            book=Book.objects.get(article_number=request.data['article_number'])
+        )
+        return Response("Book has been added", status=status.HTTP_200_OK)
 
 
+class FavouritesView(generics.RetrieveAPIView):
+    permission_classes = [IsSelfOrAdmin, ]
 
+    def get_queryset(self):
+        return Favourites.objects.all()
 
+    def retrieve(self, request, *args, **kwargs):
+        favourite_books = [favourite.book for favourite in Favourites.objects.filter(user=request.user)]
+        serializer = BookSerializer(favourite_books, many=True)
+        return Response(serializer.data)

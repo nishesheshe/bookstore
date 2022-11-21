@@ -5,7 +5,9 @@ from .views import (
     BookStoreUserViewSet,
     BookCreateView,
     BookEditView,
-    BookViewSet
+    BookViewSet,
+    AddBookToFavouritesView,
+    FavouritesView,
 )
 from dj_rest_auth.views import (
     LoginView,
@@ -22,4 +24,6 @@ urlpatterns = [
     path('profile', BookStoreUserCurrentView.as_view(), name='profile'),
     path('create_book', BookCreateView.as_view(), name='create_book'),
     path('edit_book/<slug:article_number>', BookEditView.as_view(), name='edit_book'),
+    path('add_book_to_favourites', AddBookToFavouritesView.as_view(), name='add_book_to_fav'),
+    path('favourites', FavouritesView.as_view(), name='favourites')
 ] + router.urls
