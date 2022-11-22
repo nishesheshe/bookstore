@@ -77,6 +77,22 @@ class BookStoreUser(AbstractBaseUser):
             role = 'buyer'
         return f'{self.email}|{self.username}|{role}'
 
+    @property
+    def buyer_history(self):
+        """
+            Returns queryset of books in buyer history.
+        """
+        if self.is_buyer:
+            return [history.book for history in self.history_set.all()]
+
+    @property
+    def buyer_favourites(self):
+        """
+            Returns queryset of buyer favourite books.
+        """
+        if self.is_buyer:
+            return [favourite.book for favourite in self.favourites_set.all()]
+
 
 class Seller(models.Model):
     # TODO add company_name
@@ -132,7 +148,8 @@ class Favourites(UserCartAbstract):
     The class provides user's favourites logic.
     Contains data about user Favourites books
     """
-    pass
+    def __str__(self):
+        return f'{self.book.title}'
 
 
 class History(UserCartAbstract):
