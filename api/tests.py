@@ -675,3 +675,36 @@ class TestBuyerFavourites(TestCase, GenerateUserDataMixin, GenerateBookDataMixin
 
         favorites_response = self.buyer_client.get('http://127.0.0.1:8000/bs_v1/favourites')
         self.assertEqual(self.book.article_number, favorites_response.data[0]['article_number'])
+
+
+class TestBuyerRemoveBookFromFavourites(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        # create buyer
+        cls.buyer = cls.create_user_via_model(buyer=True)
+        cls.buyer_login = cls.generate_user_login_data(buyer=True)
+
+        cls.buyer_client = Client()
+        cls.buyer_client.post('http://127.0.0.1:8000/bs_v1/login', data=cls.buyer_login)
+
+        cls._seller = cls.create_user_via_model(seller=True)
+        cls.book = cls.create_book_via_model(seller=cls._seller.seller)
+
+    def remove_book_from_favourites(self):
+        add_to_favourites_response = self.buyer_client.post(
+            'http://127.0.0.1:8000/bs_v1/add_book_to_favourites',
+            data={'article_number': self.book.article_number}
+        )
+        self.assertEqual(add_to_favourites_response.status_code, 200)
+
+        login_response = self.buyer_client.post('http://127.0.0.1:8000/bs_v1/login', data=self.buyer_login)
+        self.assertEqual(login_response.status_code, 200)
+
+        favorites_response = self.buyer_client.get('http://127.0.0.1:8000/bs_v1/favourites')
+        self.assertEqual(self.book.article_number, favorites_response.data[0]['article_number'])
+
+        remove_from_favourites_response = self.buyer_client.post(
+            'http://127.0.0.1:8000/bs_v1/remove_book_from_favourites',
+            data={'article_number': self.book.article_number}
+        )
+        self.assertEqual(remove_from_favourites_response.status_code, 200)

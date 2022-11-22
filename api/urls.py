@@ -8,6 +8,8 @@ from .views import (
     BookViewSet,
     AddBookToFavouritesView,
     FavouritesView,
+    HistoryView,
+    RemoveBookFromFavouritesView,
 )
 from dj_rest_auth.views import (
     LoginView,
@@ -25,5 +27,7 @@ urlpatterns = [
     path('create_book', BookCreateView.as_view(), name='create_book'),
     path('edit_book/<slug:article_number>', BookEditView.as_view(), name='edit_book'),
     path('add_book_to_favourites', AddBookToFavouritesView.as_view(), name='add_book_to_fav'),
-    path('favourites', FavouritesView.as_view(), name='favourites')
+    path('favourites', FavouritesView.as_view(), name='favourites'),
+    path('remove_book_from_favourites', RemoveBookFromFavouritesView.as_view(), name='remove_book'),
+    path('history', HistoryView.as_view(), name='history'),
 ] + router.urls

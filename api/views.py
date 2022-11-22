@@ -93,20 +93,54 @@ class AddBookToFavouritesView(generics.GenericAPIView):
     serializer_class = BookAddToFavouritesSerializer
 
     def post(self, request):
-        Favourites.objects.create(
-            user=request.user,
-            book=Book.objects.get(article_number=request.data['article_number'])
-        )
-        return Response("Book has been added", status=status.HTTP_200_OK)
+        favourite_books = [favourite.book for favourite in Favourites.objects.all()]
+        book_to_add = get_object_or_404(Book, article_number=request.data['article_number'])
+        if book_to_add not in favourite_books:
+            Favourites.objects.create(
+                user=request.user,
+                book=book_to_add
+            )
+            return Response({"msg": "Book has been added"}, status=status.HTTP_200_OK)
+        return Response({"msg": "Book has already been added"})
 
 
 class FavouritesView(generics.RetrieveAPIView):
-    permission_classes = [IsSelfOrAdmin, ]
+    permission_classes = [IsBuyer, ]
 
     def get_queryset(self):
-        return Favourites.objects.all()
+        pass
 
     def retrieve(self, request, *args, **kwargs):
         favourite_books = [favourite.book for favourite in Favourites.objects.filter(user=request.user)]
-        serializer = BookSerializer(favourite_books, many=True)
-        return Response(serializer.data)
+        if favourite_books:
+            serializer = BookSerializer(favourite_books, many=True)
+            return Response(serializer.data)
+        return Response({"msg": "You have no favourites books yet"})
+
+
+class HistoryView(generics.RetrieveAPIView):
+    permission_classes = [IsBuyer, ]
+
+    def get_queryset(self):
+        pass
+
+    def retrieve(self, request):
+        history_books = request.user.buyer_history
+        if history_books:
+            serializer = BookSerializer(history_books, many=True)
+            return Response(serializer.data)
+        return Response({"msg": "You have no books in history yet"})
+
+
+class RemoveBookFromFavouritesView(generics.GenericAPIView):
+    permission_classes = [IsBuyer, ]
+    # I haven't created new serializer because adding is the reverse of deleting
+    serializer_class = BookAddToFavouritesSerializer
+
+    def post(self, request):
+        book = get_object_or_404(Book, article_number=request.data['article_number'])
+        favourite_books = request.user.buyer_favourites
+        if book in favourite_books:
+            Favourites.objects.filter(book=book).delete()
+            return Response({"msg": "Book has been deleted from your favourites."}, status=status.HTTP_200_OK)
+        return Response({"msg": "You does not have that book in your favourites to delete it"})
