@@ -1,5 +1,7 @@
 from rest_framework import permissions
 
+from users.models import BookStoreUser
+
 
 class IsSelfOrAdmin(permissions.BasePermission):
     """
@@ -27,5 +29,7 @@ class IsSellerOwner(permissions.BasePermission):
 
 class IsBuyer(permissions.BasePermission):
     def has_permission(self, request, view):
-        return request.user.is_buyer
+        if isinstance(request.user, BookStoreUser):
+            return request.user.is_buyer
+        return False
 
