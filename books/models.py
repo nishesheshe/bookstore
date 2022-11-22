@@ -26,7 +26,6 @@ class Book(models.Model):
     )
     title = models.CharField(
         max_length=100,
-        default="", # TODO remove default before production
     )
     rating = models.PositiveSmallIntegerField(
         validators=[
@@ -49,7 +48,7 @@ class Book(models.Model):
         max_digits=8,
         decimal_places=2,
     )
-    article_number = models.PositiveBigIntegerField() # TODO make field unique
+    article_number = models.PositiveBigIntegerField(unique=True)
     isbn = models.PositiveBigIntegerField()  # ISBN
     pages = models.PositiveSmallIntegerField()
     language = models.CharField(max_length=100)

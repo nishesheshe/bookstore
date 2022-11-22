@@ -1,5 +1,6 @@
 from datetime import date
 
+from django.contrib.auth.models import PermissionsMixin
 from django.utils import timezone
 
 from django.contrib.auth.base_user import (
@@ -28,7 +29,8 @@ class BookStoreUserManager(BaseUserManager):
             email=self.normalize_email(email),
             username=username,
             is_seller=is_seller,
-            is_staff=is_stuff
+            is_staff=is_stuff,
+            is_superuser=True,
         )
         user.set_password(password)
         user.save(using=self._db)
@@ -37,7 +39,7 @@ class BookStoreUserManager(BaseUserManager):
         return user
 
 
-class BookStoreUser(AbstractBaseUser):
+class BookStoreUser(AbstractBaseUser, PermissionsMixin):
     """
     Defines user model.
     User can be authenticated by email and password.
@@ -63,6 +65,7 @@ class BookStoreUser(AbstractBaseUser):
     USERNAME_FIELD = 'email'
     objects = BookStoreUserManager()
 
+
     @property
     def is_buyer(self):
         """
@@ -76,6 +79,7 @@ class BookStoreUser(AbstractBaseUser):
         elif self.is_buyer:
             role = 'buyer'
         return f'{self.email}|{self.username}|{role}'
+
 
     @property
     def buyer_history(self):
@@ -95,7 +99,7 @@ class BookStoreUser(AbstractBaseUser):
 
 
 class Seller(models.Model):
-    # TODO add company_name
+
     user = models.OneToOneField(
         BookStoreUser,
         on_delete=models.CASCADE,
